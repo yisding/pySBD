@@ -21,6 +21,17 @@ def test_segmenter_doesnt_mutate_input(pysbd_default_en_no_clean_no_span_fixture
     segments = [s.strip() for s in segments]
     assert text == 'My name is Jonas E. Smith. Please turn to p. 55.'
 
+def test_segment_spans_helper_returns_textspans(text='My name is Jonas E. Smith. Please turn to p. 55.'):
+    seg = pysbd.Segmenter(language="en", clean=False, char_span=False)
+    spans = seg.segment_spans(text)
+    assert all(isinstance(span, TextSpan) for span in spans)
+    assert text == "".join([seg_span.sent for seg_span in spans])
+
+def test_segment_clean_helper_matches_clean_segmenter(text='This is the U.S. Senate my friends. <em>Yes.</em>'):
+    seg = pysbd.Segmenter(language="en", clean=False, char_span=False)
+    clean_seg = pysbd.Segmenter(language="en", clean=True, char_span=False)
+    assert seg.segment_clean(text) == clean_seg.segment(text)
+
 @pytest.mark.parametrize('text,expected',
                          [('My name is Jonas E. Smith. Please turn to p. 55.',
                             [

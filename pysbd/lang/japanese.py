@@ -5,7 +5,7 @@ from pysbd.between_punctuation import BetweenPunctuation
 from pysbd.lang.common import Common, Standard
 from pysbd.punctuation_replacer import replace_punctuation
 from pysbd.cleaner import Cleaner
-from pysbd.utils import Text, Rule
+from pysbd.utils import Rule, apply_rules
 
 class Japanese(Common, Standard):
 
@@ -22,7 +22,7 @@ class Japanese(Common, Standard):
 
         def remove_newline_in_middle_of_word(self):
             NewLineInMiddleOfWordRule = Rule(r'(?<=の)\n(?=\S)', '')
-            self.text = Text(self.text).apply(NewLineInMiddleOfWordRule)
+            self.text = apply_rules(self.text, NewLineInMiddleOfWordRule)
 
     class AbbreviationReplacer(AbbreviationReplacer):
         SENTENCE_STARTERS = []

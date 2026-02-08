@@ -1,21 +1,29 @@
 # -*- coding: utf-8 -*-
-import re
 from pysbd.utils import Rule
 
-class Common(object):
+class Common:
 
     # added special case: r"[。．.！!? ]{2,}" to handle intermittent dots, exclamation, etc.
     # r"[。．.！!?] at end to handle single instances of these symbol inputs
-    SENTENCE_BOUNDARY_REGEX = r"（(?:[^）])*）(?=\s?[A-Z])|「(?:[^」])*」(?=\s[A-Z])|\((?:[^\)]){2,}\)(?=\s[A-Z])|\'(?:[^\'])*[^,]\'(?=\s[A-Z])|\"(?:[^\"])*[^,]\"(?=\s[A-Z])|\“(?:[^\”])*[^,]\”(?=\s[A-Z])|[。．.！!?？ ]{2,}|\S.*?[。．.！!?？ȸȹ☉☈☇☄]|[。．.！!?？]"
+    _SENTENCE_END_PUNCT = r"[。．.！!?？ȸȹ☉☈☇☄]"
+    _SENTENCE_BOUNDARY_PARTS = [
+        r"（(?:[^）])*）(?=\s?[A-Z])",
+        r"「(?:[^」])*」(?=\s[A-Z])",
+        r"\((?:[^\)]){2,}\)(?=\s[A-Z])",
+        r"\'(?:[^\'])*[^,]\'(?=\s[A-Z])",
+        r"\"(?:[^\"])*[^,]\"(?=\s[A-Z])",
+        r"\“(?:[^\”])*[^,]\”(?=\s[A-Z])",
+        r"[。．.！!?？ ]{2,}",
+        r"\S[^\n。．.！!?？ȸȹ☉☈☇☄]*" + _SENTENCE_END_PUNCT,
+        r"[。．.！!?？]",
+    ]
+    SENTENCE_BOUNDARY_REGEX = "|".join(_SENTENCE_BOUNDARY_PARTS)
 
     # # Rubular: http://rubular.com/r/NqCqv372Ix
     QUOTATION_AT_END_OF_SENTENCE_REGEX = r'[!?\.-][\"\'“”]\s{1}[A-Z]'
 
     # # Rubular: http://rubular.com/r/6flGnUMEVl
     PARENS_BETWEEN_DOUBLE_QUOTES_REGEX = r'["\”]\s\(.*\)\s["\“]'
-
-    # # Rubular: http://rubular.com/r/TYzr4qOW1Q
-    # BETWEEN_DOUBLE_QUOTES_REGEX = / "(?:[^"])*[^, ]"|“(?: [ ^”])*[^, ]”/
 
     # # Rubular: http://rubular.com/r/JMjlZHAT4g
     SPLIT_SPACE_QUOTATION_AT_END_OF_SENTENCE_REGEX = r'(?<=[!?\.-][\"\'“”])\s{1}(?=[A-Z])'
@@ -36,7 +44,7 @@ class Common(object):
     # # Rubular: http://rubular.com/r/xDkpFZ0EgH
     MULTI_PERIOD_ABBREVIATION_REGEX = r"\b[a-z](?:\.[a-z])+[.]"
 
-    class SingleLetterAbbreviationRules(object):
+    class SingleLetterAbbreviationRules:
         """Searches for periods within an abbreviation and
         replaces the periods.
         """
@@ -50,7 +58,7 @@ class Common(object):
             SingleUpperCaseLetterAtStartOfLineRule, SingleUpperCaseLetterRule
         ]
 
-    class AmPmRules(object):
+    class AmPmRules:
 
         # Rubular: http://rubular.com/r/Vnx3m4Spc8
         UpperCasePmRule = Rule(r'(?<= P∯M)∯(?=\s[A-Z])', '.')
@@ -66,7 +74,7 @@ class Common(object):
 
         All = [UpperCasePmRule, UpperCaseAmRule, LowerCasePmRule, LowerCaseAmRule]
 
-    class Numbers(object):
+    class Numbers:
         # Rubular: http://rubular.com/r/oNyxBOqbyy
         PeriodBeforeNumberRule = Rule(r'\.(?=\d)', '∯')
 

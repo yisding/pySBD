@@ -1,26 +1,29 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
+
 import re
-from pysbd.utils import Text
+
+from pysbd.utils import apply_rules
 from pysbd.clean.rules import PDF, HTML, CleanRules as cr
 
 
-class Cleaner(object):
+class Cleaner:
 
-    def __init__(self, text, lang, doc_type=None):
+    def __init__(self, text: str | None, lang, doc_type: str | None = None) -> None:
         self.text = text
         self.lang = lang
         self.doc_type = doc_type
 
-    def clean(self):
+    def clean(self) -> str | None:
         if not self.text:
             return self.text
         self.remove_all_newlines()
         self.replace_double_newlines()
         self.replace_newlines()
         self.replace_escaped_newlines()
-        self.text = Text(self.text).apply(*HTML.All)
+        self.text = apply_rules(self.text, *HTML.All)
         self.replace_punctuation_in_brackets()
-        self.text = Text(self.text).apply(cr.InlineFormattingRule)
+        self.text = apply_rules(self.text, cr.InlineFormattingRule)
         self.clean_quotations()
         self.clean_table_of_contents()
         self.check_for_no_space_in_between_sentences()
@@ -39,32 +42,41 @@ class Cleaner(object):
         self.text = re.sub(r'(?:[^\.])*', replace_w_blank, self.text)
 
     def remove_newline_in_middle_of_word(self):
-        self.text = Text(self.text).apply(cr.NewLineInMiddleOfWordRule)
+        self.text = apply_rules(self.text, cr.NewLineInMiddleOfWordRule)
 
     def replace_double_newlines(self):
-        self.text = Text(self.text).apply(cr.DoubleNewLineWithSpaceRule,
-                                          cr.DoubleNewLineRule)
+        self.text = apply_rules(
+            self.text,
+            cr.DoubleNewLineWithSpaceRule,
+            cr.DoubleNewLineRule,
+        )
 
     def remove_pdf_line_breaks(self):
-        self.text = Text(
-                self.text).apply(cr.NewLineFollowedByBulletRule,
-                                 PDF.NewLineInMiddleOfSentenceRule,
-                                 PDF.NewLineInMiddleOfSentenceNoSpacesRule)
+        self.text = apply_rules(
+            self.text,
+            cr.NewLineFollowedByBulletRule,
+            PDF.NewLineInMiddleOfSentenceRule,
+            PDF.NewLineInMiddleOfSentenceNoSpacesRule,
+        )
 
     def replace_newlines(self):
         if self.doc_type == 'pdf':
             self.remove_pdf_line_breaks()
         else:
-            self.text = Text(
-                self.text).apply(cr.NewLineFollowedByPeriodRule,
-                                 cr.ReplaceNewlineWithCarriageReturnRule)
+            self.text = apply_rules(
+                self.text,
+                cr.NewLineFollowedByPeriodRule,
+                cr.ReplaceNewlineWithCarriageReturnRule,
+            )
 
     def replace_escaped_newlines(self):
-        self.text = Text(
-                self.text).apply(cr.EscapedNewLineRule,
-                                 cr.EscapedCarriageReturnRule,
-                                 cr.TypoEscapedNewLineRule,
-                                 cr.TypoEscapedCarriageReturnRule)
+        self.text = apply_rules(
+            self.text,
+            cr.EscapedNewLineRule,
+            cr.EscapedCarriageReturnRule,
+            cr.TypoEscapedNewLineRule,
+            cr.TypoEscapedCarriageReturnRule,
+        )
 
     def replace_punctuation_in_brackets(self):
         def replace_punct(match):
@@ -80,32 +92,47 @@ class Cleaner(object):
         # pragmatic-segmenter applies thhis method
         # at different location
         self.text = re.sub('`', "'", self.text)
-        self.text = Text(self.text).apply(
-                                        cr.QuotationsFirstRule,
-                                        cr.QuotationsSecondRule)
+        self.text = apply_rules(
+            self.text,
+            cr.QuotationsFirstRule,
+            cr.QuotationsSecondRule,
+        )
 
     def clean_table_of_contents(self):
-        self.text = Text(self.text).apply(
-                                        cr.TableOfContentsRule,
-                                        cr.ConsecutivePeriodsRule,
-                                        cr.ConsecutiveForwardSlashRule)
+        self.text = apply_rules(
+            self.text,
+            cr.TableOfContentsRule,
+            cr.ConsecutivePeriodsRule,
+            cr.ConsecutiveForwardSlashRule,
+        )
 
-    def search_for_connected_sentences(self, word, txt, regex, rule):
+    def search_for_connected_sentences(self, word: str, regex, rule) -> str:
         if not re.search(regex, word):
-            return txt
+            return word
         if any(k in word for k in cr.URL_EMAIL_KEYWORDS):
-            return txt
-        new_word = Text(word).apply(rule)
-        txt = re.sub(re.escape(word), new_word, txt)
-        return txt
+            return word
+        new_word = apply_rules(word, rule)
+        return new_word
 
     def check_for_no_space_in_between_sentences(self):
         words = self.text.split(' ')
-        for word in words:
-            self.text = self.search_for_connected_sentences(word, self.text, cr.NO_SPACE_BETWEEN_SENTENCES_REGEX, cr.NoSpaceBetweenSentencesRule)
-            self.text = self.search_for_connected_sentences(word, self.text, cr.NO_SPACE_BETWEEN_SENTENCES_DIGIT_REGEX, cr.NoSpaceBetweenSentencesDigitRule)
+        for idx, word in enumerate(words):
+            word = self.search_for_connected_sentences(
+                word,
+                cr.NO_SPACE_BETWEEN_SENTENCES_REGEX,
+                cr.NoSpaceBetweenSentencesRule,
+            )
+            word = self.search_for_connected_sentences(
+                word,
+                cr.NO_SPACE_BETWEEN_SENTENCES_DIGIT_REGEX,
+                cr.NoSpaceBetweenSentencesDigitRule,
+            )
+            words[idx] = word
+        self.text = ' '.join(words)
 
     def clean_consecutive_characters(self):
-        self.text = Text(self.text).apply(
-                                        cr.ConsecutivePeriodsRule,
-                                        cr.ConsecutiveForwardSlashRule)
+        self.text = apply_rules(
+            self.text,
+            cr.ConsecutivePeriodsRule,
+            cr.ConsecutiveForwardSlashRule,
+        )

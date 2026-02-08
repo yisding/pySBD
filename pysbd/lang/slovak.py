@@ -4,7 +4,7 @@ from pysbd.abbreviation_replacer import AbbreviationReplacer
 from pysbd.between_punctuation import BetweenPunctuation
 from pysbd.lang.common import Common, Standard
 from pysbd.processor import Processor
-from pysbd.utils import Text
+from pysbd.utils import apply_rules
 from pysbd.punctuation_replacer import replace_punctuation
 from pysbd.lists_item_replacer import ListItemReplacer
 
@@ -71,7 +71,7 @@ class Slovak(Common, Standard):
 
         def process(self):
             if not self.text:
-                return self.text
+                return []
             self.text = self.text.replace('\n', '\r')
 
             # Here we use language specific ListItemReplacer:
@@ -82,14 +82,15 @@ class Slovak(Common, Standard):
             self.replace_numbers()
             self.replace_continuous_punctuation()
             self.replace_periods_before_numeric_references()
-            self.text = Text(self.text).apply(
+            self.text = apply_rules(
+                self.text,
                 self.lang.Abbreviation.WithMultiplePeriodsAndEmailRule,
                 self.lang.GeoLocationRule, self.lang.FileFormatRule)
             postprocessed_sents = self.split_into_segments()
             return postprocessed_sents
 
         def replace_numbers(self):
-            self.text = Text(self.text).apply(*self.lang.Numbers.All)
+            self.text = apply_rules(self.text, *self.lang.Numbers.All)
             self.replace_period_in_slovak_dates()
             self.replace_period_in_ordinal_numerals()
             self.replace_period_in_roman_numerals()
@@ -108,4 +109,4 @@ class Slovak(Common, Standard):
                       'Januára', 'Februára', 'Marca', 'Apríla', 'Mája', 'Júna', 'Júla', 'Augusta', 'Septembra', 'Októbra', 'Novembra', 'Decembra']
             for month in MONTHS:
                 # Rubular: https://rubular.com/r/dGLZqsbjcdJvCd
-                self.text = re.sub(r'(?<=\d)\.(?=\s*{month})'.format(month=month), '∯', self.text)
+                self.text = re.sub(rf'(?<=\d)\.(?=\s*{month})', '∯', self.text)

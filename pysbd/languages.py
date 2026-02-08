@@ -50,15 +50,15 @@ LANGUAGE_CODES = {
 }
 
 
-class Language(object):
+class Language:
 
-    def __init__(self, code):
+    def __init__(self, code: str) -> None:
         self.code = code
 
     @classmethod
-    def get_language_code(cls, code):
+    def get_language_code(cls, code: str):
         try:
             return LANGUAGE_CODES[code]
         except KeyError:
             raise ValueError("Provide valid language ID i.e. ISO code. "
-                "Available codes are : {}".format(set(LANGUAGE_CODES.keys())))
+                "Available codes are : {}".format(sorted(LANGUAGE_CODES.keys())))

@@ -5,7 +5,7 @@ from pysbd.between_punctuation import BetweenPunctuation
 from pysbd.lang.common import Common, Standard
 from pysbd.punctuation_replacer import replace_punctuation
 from pysbd.processor import Processor
-from pysbd.utils import Text, Rule
+from pysbd.utils import Rule, apply_rules
 
 
 class Deutsch(Common, Standard):
@@ -27,7 +27,7 @@ class Deutsch(Common, Standard):
             super().__init__(text, lang, char_span)
 
         def replace_numbers(self):
-            self.text = Text(self.text).apply(*self.lang.Numbers.All)
+            self.text = apply_rules(self.text, *self.lang.Numbers.All)
             self.replace_period_in_deutsch_dates()
             return self.text
 
@@ -36,7 +36,7 @@ class Deutsch(Common, Standard):
                       'September', 'Oktober', 'November', 'Dezember']
             for month in MONTHS:
                 # Rubular: http://rubular.com/r/zlqgj7G5dA
-                self.text = re.sub(r'(?<=\d)\.(?=\s*{month})'.format(month=month), '∯', self.text)
+                self.text = re.sub(rf'(?<=\d)\.(?=\s*{month})', '∯', self.text)
 
     class Abbreviation(Standard.Abbreviation):
         ABBREVIATIONS = ['Ä', 'ä', 'adj', 'adm', 'adv', 'art', 'asst', 'b.a', 'b.s', 'bart', 'bldg', 'brig', 'bros', 'bse', 'buchst', 'bzgl', 'bzw', 'c.-à-d', 'ca', 'capt', 'chr', 'cmdr', 'co', 'col', 'comdr', 'con', 'corp', 'cpl', 'd.h', 'd.j', 'dergl', 'dgl', 'dkr', 'dr ', 'ens', 'etc', 'ev ', 'evtl', 'ff', 'g.g.a', 'g.u', 'gen', 'ggf', 'gov', 'hon', 'hosp', 'i.f', 'i.h.v', 'ii', 'iii', 'insp', 'iv', 'ix', 'jun', 'k.o', 'kath ', 'lfd', 'lt', 'ltd', 'm.e', 'maj', 'med', 'messrs', 'mio', 'mlle', 'mm', 'mme', 'mr', 'mrd', 'mrs', 'ms', 'msgr', 'mwst', 'no', 'nos', 'nr', 'o.ä', 'op', 'ord', 'pfc', 'ph', 'pp', 'prof', 'pvt', 'rep', 'reps', 'res', 'rev', 'rt', 's.p.a', 'sa', 'sen', 'sens', 'sfc', 'sgt', 'sog', 'sogen', 'spp', 'sr', 'st', 'std', 'str  ', 'supt', 'surg', 'u.a  ', 'u.e', 'u.s.w', 'u.u', 'u.ä', 'usf', 'usw', 'v', 'vgl', 'vi', 'vii', 'viii', 'vs', 'x', 'xi', 'xii', 'xiii', 'xiv', 'xix', 'xv', 'xvi', 'xvii', 'xviii', 'xx', 'z.b', 'z.t', 'z.z', 'z.zt', 'zt', 'zzt', 'univ.-prof', 'o.univ.-prof', 'ao.univ.prof', 'ass.prof', 'hon.prof', 'univ.-doz', 'univ.ass', 'stud.ass', 'projektass', 'ass', 'di', 'dipl.-ing', 'mag']
@@ -57,7 +57,8 @@ class Deutsch(Common, Standard):
 
             # Rubular: http://rubular.com/r/iUNSkCuso0
             SingleLowerCaseLetterAtStartOfLineRule = Rule(r'(?<=^[a-z])\.(?=\s)', '∯')
-            self.text = Text(self.text).apply(
+            self.text = apply_rules(
+                    self.text,
                     self.lang.PossessiveAbbreviationRule,
                     *self.lang.SingleLetterAbbreviationRules.All,
                     SingleLowerCaseLetterRule,
@@ -65,7 +66,7 @@ class Deutsch(Common, Standard):
 
             self.text = self.search_for_abbreviations_in_string(self.text)
             self.replace_multi_period_abbreviations()
-            self.text = Text(self.text).apply(*self.lang.AmPmRules.All)
+            self.text = apply_rules(self.text, *self.lang.AmPmRules.All)
             self.text = self.replace_abbreviation_as_sentence_boundary()
             return self.text
 

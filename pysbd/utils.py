@@ -1,17 +1,33 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from __future__ import annotations
+
 import re
+from typing import Pattern
+
 import pysbd
 
-class Rule(object):
+class Rule:
 
-    def __init__(self, pattern, replacement):
+    def __init__(self, pattern: str, replacement: str, flags: int = 0) -> None:
         self.pattern = pattern
         self.replacement = replacement
+        self.flags = flags
+        self.regex: Pattern[str] = re.compile(pattern, flags)
 
-    def __repr__(self):  # pragma: no cover
+    def __repr__(self) -> str:  # pragma: no cover
         return '<{} pattern="{}" and replacement="{}">'.format(
             self.__class__.__name__, self.pattern, self.replacement)
+
+
+def apply_rules(text: str, *rules: Rule) -> str:
+    """Apply a series of compiled regex rules to text."""
+    for rule in rules:
+        if hasattr(rule, "regex"):
+            text = rule.regex.sub(rule.replacement, text)
+        else:
+            text = re.sub(rule.pattern, rule.replacement, text)
+    return text
 
 
 class Text(str):
@@ -30,15 +46,13 @@ class Text(str):
         input as it is if rule pattern doesnt match
         else replacing found pattern with replacement chars
     """
-    def apply(self, *rules):
-        for each_r in rules:
-            self = re.sub(each_r.pattern, each_r.replacement, self)
-        return self
+    def apply(self, *rules: Rule) -> str:
+        return apply_rules(str(self), *rules)
 
 
-class TextSpan(object):
+class TextSpan:
 
-    def __init__(self, sent, start, end):
+    def __init__(self, sent: str, start: int, end: int) -> None:
         """
         Sentence text and its start & end character offsets within original text
 
@@ -55,19 +69,20 @@ class TextSpan(object):
         self.start = start
         self.end = end
 
-    def __repr__(self):  # pragma: no cover
+    def __repr__(self) -> str:  # pragma: no cover
         return "{0}(sent={1}, start={2}, end={3})".format(
             self.__class__.__name__, repr(self.sent), self.start, self.end)
 
-    def __eq__(self, other):
-        if isinstance(self, other.__class__):
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, self.__class__):
             return self.sent == other.sent and self.start == other.start and self.end == other.end
+        return False
 
 
-class PySBDFactory(object):
+class PySBDFactory:
     """pysbd as a spacy component through entrypoints"""
 
-    def __init__(self, nlp, language='en'):
+    def __init__(self, nlp, language: str = 'en') -> None:
         self.nlp = nlp
         self.seg = pysbd.Segmenter(language=language, clean=False,
                                    char_span=True)

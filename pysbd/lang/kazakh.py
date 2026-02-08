@@ -2,7 +2,7 @@
 from pysbd.abbreviation_replacer import AbbreviationReplacer
 from pysbd.lang.common import Common, Standard
 from pysbd.processor import Processor
-from pysbd.utils import Text, Rule
+from pysbd.utils import Rule, apply_rules
 
 
 class Kazakh(Common, Standard):
@@ -25,8 +25,11 @@ class Kazakh(Common, Standard):
             # Rubular: http://rubular.com/r/lixxP7puSa
             ExclamationMarkFollowedByDashLowercaseRule = Rule(r'(?<=)!(?=\s*[-—]\s*)', '&ᓴ&')
 
-            txt = Text(txt).apply(QuestionMarkFollowedByDashLowercaseRule,
-                                  ExclamationMarkFollowedByDashLowercaseRule)
+            txt = apply_rules(
+                txt,
+                QuestionMarkFollowedByDashLowercaseRule,
+                ExclamationMarkFollowedByDashLowercaseRule,
+            )
             return txt
 
     class Abbreviation(Standard.Abbreviation):
@@ -44,7 +47,10 @@ class Kazakh(Common, Standard):
         def replace(self):
             SingleUpperCaseCyrillicLetterAtStartOfLineRule = Rule(r'(?<=^[А-ЯЁ])\.(?=\s)', '∯')
             SingleUpperCaseCyrillicLetterRule = Rule(r'(?<=\s[А-ЯЁ])\.(?=\s)', '∯')
-            self.text = Text(self.text).apply(SingleUpperCaseCyrillicLetterAtStartOfLineRule,
-                                              SingleUpperCaseCyrillicLetterRule)
+            self.text = apply_rules(
+                self.text,
+                SingleUpperCaseCyrillicLetterAtStartOfLineRule,
+                SingleUpperCaseCyrillicLetterRule,
+            )
             self.replace_multi_period_abbreviations()
             return self.text

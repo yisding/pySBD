@@ -2,7 +2,7 @@
 from pysbd.utils import Rule
 
 
-class CleanRules(object):
+class CleanRules:
 
     # NOTE: Caution: Might require \\ for special characters
     # if regex is defined with r'' then dont
@@ -62,7 +62,7 @@ class CleanRules(object):
     QuotationsSecondRule = Rule(r'``', '"')
 
 
-class HTML(object):
+class HTML:
     # Rubular: http://rubular.com/r/9d0OVOEJWj
     HTMLTagRule = Rule(r"<\/?\w+((\s+\w+(\s*=\s*(?:\".*?\"|'.*?'|[\^'\">\s]+))?)+\s*|\s*)\/?>", '')
 
@@ -72,7 +72,7 @@ class HTML(object):
     All = [HTMLTagRule, EscapedHTMLTagRule]
 
 
-class PDF(object):
+class PDF:
     # Rubular: http://rubular.com/r/UZAVcwqck8
     NewLineInMiddleOfSentenceRule = Rule(r'(?<=[^\n]\s)\n(?=\S)', '')
 

@@ -1,14 +1,19 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
+
 import re
+from typing import List
 
 from pysbd.languages import Language
 from pysbd.processor import Processor
 from pysbd.cleaner import Cleaner
 from pysbd.utils import TextSpan
 
-class Segmenter(object):
 
-    def __init__(self, language="en", clean=False, doc_type=None, char_span=False):
+class Segmenter:
+
+    def __init__(self, language: str = "en", clean: bool = False,
+                 doc_type: str | None = None, char_span: bool = False) -> None:
         """Segments a text into an list of sentences
         with or withour character offsets from original text
 
@@ -41,14 +46,14 @@ class Segmenter(object):
                             "`char_span` should be False since original"
                             "text will be modified.")
 
-    def cleaner(self, text):
+    def cleaner(self, text: str):
         if hasattr(self.language_module, "Cleaner"):
             return self.language_module.Cleaner(text, self.language_module,
                                                 doc_type=self.doc_type)
         else:
             return Cleaner(text, self.language_module, doc_type=self.doc_type)
 
-    def processor(self, text):
+    def processor(self, text: str):
         if hasattr(self.language_module, "Processor"):
             return self.language_module.Processor(text, self.language_module,
                                                   char_span=self.char_span)
@@ -56,41 +61,64 @@ class Segmenter(object):
             return Processor(text, self.language_module,
                              char_span=self.char_span)
 
-    def sentences_with_char_spans(self, sentences):
+    def sentences_with_char_spans(self, sentences: List[str],
+                                  original_text: str) -> List[TextSpan]:
         # since SENTENCE_BOUNDARY_REGEX doesnt account
         # for trailing whitespaces \s* & is used as suffix
         # to keep non-destructive text after segments joins
-        sent_spans = []
+        sent_spans: List[TextSpan] = []
         prior_end_char_idx = 0
         for sent in sentences:
-            for match in re.finditer('{0}\s*'.format(re.escape(sent)), self.original_text):
-                match_str = match.group()
-                match_start_idx, match_end_idx = match.span()
-                if match_end_idx > prior_end_char_idx:
-                    # making sure if curren sentence and its span
-                    # is either first sentence along with its char spans
-                    # or current sent spans adjacent to prior sentence spans
-                    sent_spans.append(
-                        TextSpan(match_str, match_start_idx, match_end_idx))
-                    prior_end_char_idx = match_end_idx
-                    break
+            if not sent:
+                continue
+            start_idx = original_text.find(sent, prior_end_char_idx)
+            if start_idx == -1:
+                for match in re.finditer(rf'{re.escape(sent)}\s*', original_text):
+                    match_str = match.group()
+                    match_start_idx, match_end_idx = match.span()
+                    if match_end_idx > prior_end_char_idx:
+                        sent_spans.append(
+                            TextSpan(match_str, match_start_idx, match_end_idx))
+                        prior_end_char_idx = match_end_idx
+                        break
+                continue
+            end_idx = start_idx + len(sent)
+            while end_idx < len(original_text) and original_text[end_idx].isspace():
+                end_idx += 1
+            sent_spans.append(TextSpan(original_text[start_idx:end_idx], start_idx, end_idx))
+            prior_end_char_idx = end_idx
         return sent_spans
 
-    def segment(self, text):
-        self.original_text = text
+    def segment(self, text: str | None) -> List[str] | List[TextSpan]:
         if not text:
             return []
 
+        original_text = text
         if self.clean or self.doc_type == 'pdf':
             text = self.cleaner(text).clean()
 
         postprocessed_sents = self.processor(text).process()
-        sentence_w_char_spans = self.sentences_with_char_spans(postprocessed_sents)
+
         if self.char_span:
-            return sentence_w_char_spans
-        elif self.clean:
+            return self.sentences_with_char_spans(postprocessed_sents, original_text)
+        if self.clean:
             # clean and destructed sentences
             return postprocessed_sents
-        else:
-            # nondestructive with whitespaces
-            return [textspan.sent for textspan in sentence_w_char_spans]
+        # nondestructive with whitespaces
+        sentence_w_char_spans = self.sentences_with_char_spans(
+            postprocessed_sents, original_text)
+        return [textspan.sent for textspan in sentence_w_char_spans]
+
+    def segment_spans(self, text: str | None) -> List[TextSpan]:
+        """Return sentence spans regardless of the instance's char_span flag."""
+        if self.clean:
+            raise ValueError("segment_spans() requires clean=False.")
+        seg = Segmenter(language=self.language, clean=False,
+                        doc_type=self.doc_type, char_span=True)
+        return seg.segment(text)
+
+    def segment_clean(self, text: str | None) -> List[str]:
+        """Return cleaned sentences regardless of the instance's clean flag."""
+        seg = Segmenter(language=self.language, clean=True,
+                        doc_type=self.doc_type, char_span=False)
+        return seg.segment(text)

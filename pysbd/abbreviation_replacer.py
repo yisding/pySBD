@@ -1,53 +1,65 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
+
 import re
-from pysbd.utils import Text
+from typing import List
+
+from pysbd.utils import apply_rules
 
 
-def replace_pre_number_abbr(txt, abbr):
+def replace_pre_number_abbr(txt: str, abbr: str) -> str:
     # prepend a space to avoid needing another regex for start of string
     txt = " " + txt
-    txt = re.sub(r"(?<=\s{abbr})\.(?=(\s\d|\s+\())".format(abbr=abbr.strip()), "∯", txt)
+    escaped = re.escape(abbr.strip())
+    txt = re.sub(rf"(?<=\s{escaped})\.(?=(\s\d|\s+\())", "∯", txt)
     # remove the prepended space
     txt = txt[1:]
     return txt
 
 
-def replace_prepositive_abbr(txt, abbr):
+def replace_prepositive_abbr(txt: str, abbr: str) -> str:
     # prepend a space to avoid needing another regex for start of string
     txt = " " + txt
-    txt = re.sub(r"(?<=\s{abbr})\.(?=(\s|:\d+))".format(abbr=abbr.strip()), "∯", txt)
+    escaped = re.escape(abbr.strip())
+    txt = re.sub(rf"(?<=\s{escaped})\.(?=(\s|:\d+))", "∯", txt)
     # remove the prepended space
     txt = txt[1:]
     return txt
 
 
-class AbbreviationReplacer(object):
-    def __init__(self, text, lang):
+class AbbreviationReplacer:
+    def __init__(self, text: str, lang) -> None:
         self.text = text
         self.lang = lang
+        self._abbreviations = sorted(
+            self.lang.Abbreviation.ABBREVIATIONS,
+            key=len,
+            reverse=True,
+        )
 
-    def replace(self):
-        self.text = Text(self.text).apply(
+    def replace(self) -> str:
+        self.text = apply_rules(
+            self.text,
             self.lang.PossessiveAbbreviationRule,
             self.lang.KommanditgesellschaftRule,
             *self.lang.SingleLetterAbbreviationRules.All
         )
-        abbr_handled_text = ""
+        lines: List[str] = []
         for line in self.text.splitlines(True):
-            abbr_handled_text += self.search_for_abbreviations_in_string(line)
-        self.text = abbr_handled_text
+            lines.append(self.search_for_abbreviations_in_string(line))
+        self.text = "".join(lines)
         self.replace_multi_period_abbreviations()
-        self.text = Text(self.text).apply(*self.lang.AmPmRules.All)
+        self.text = apply_rules(self.text, *self.lang.AmPmRules.All)
         self.text = self.replace_abbreviation_as_sentence_boundary()
         return self.text
 
-    def replace_abbreviation_as_sentence_boundary(self):
+    def replace_abbreviation_as_sentence_boundary(self) -> str:
         sent_starters = "|".join((r"(?=\s{}\s)".format(word) for word in self.SENTENCE_STARTERS))
         regex = r"(U∯S|U\.S|U∯K|E∯U|E\.U|U∯S∯A|U\.S\.A|I|i.v|I.V)∯({})".format(sent_starters)
         self.text = re.sub(regex, '\\1.', self.text)
         return self.text
 
-    def replace_multi_period_abbreviations(self):
+    def replace_multi_period_abbreviations(self) -> None:
         def mpa_replace(match):
             match = match.group()
             match = re.sub(re.escape(r"."), "∯", match)
@@ -60,7 +72,7 @@ class AbbreviationReplacer(object):
             flags=re.IGNORECASE
         )
 
-    def replace_period_of_abbr(self, txt, abbr):
+    def replace_period_of_abbr(self, txt: str, abbr: str) -> str:
         # prepend a space to avoid needing another regex for start of string
         txt = " " + txt
         txt = re.sub(
@@ -75,14 +87,16 @@ class AbbreviationReplacer(object):
         return txt
 
 
-    def search_for_abbreviations_in_string(self, text):
+    def search_for_abbreviations_in_string(self, text: str) -> str:
         lowered = text.lower()
-        for abbr in self.lang.Abbreviation.ABBREVIATIONS:
+        for abbr in self._abbreviations:
             stripped = abbr.strip()
-            if stripped not in lowered:
+            stripped_lower = stripped.lower()
+            if stripped_lower not in lowered:
                 continue
+            escaped = re.escape(stripped)
             abbrev_match = re.findall(
-                r"(?:^|\s|\r|\n){}".format(stripped), text, flags=re.IGNORECASE
+                r"(?:^|\s|\r|\n){}".format(escaped), text, flags=re.IGNORECASE
             )
             if not abbrev_match:
                 continue
@@ -94,7 +108,7 @@ class AbbreviationReplacer(object):
                 )
         return text
 
-    def scan_for_replacements(self, txt, am, ind, char_array):
+    def scan_for_replacements(self, txt: str, am: str, ind: int, char_array) -> str:
         try:
             char = char_array[ind]
         except IndexError:

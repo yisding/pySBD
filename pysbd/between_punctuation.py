@@ -1,10 +1,18 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
+
 import re
 from functools import partial
+
 from pysbd.punctuation_replacer import replace_punctuation
 
 
-class BetweenPunctuation(object):
+class BetweenPunctuation:
+    """Replace punctuation inside quotes/brackets so it won't split sentences.
+
+    Note: *_REGEX_2 patterns are kept as atomic-grouping workarounds for Python
+    (Ruby's atomic groups are not available in the stdlib regex engine).
+    """
     # Rubular: http://rubular.com/r/2YFrKWQUYi
     BETWEEN_SINGLE_QUOTES_REGEX = r"(?<=\s)'(?:[^']|'[a-zA-Z])*'"
 
@@ -44,13 +52,13 @@ class BetweenPunctuation(object):
 
     BETWEEN_EM_DASHES_REGEX_2 = r"--(?=(?P<tmp>[^--]*))(?P=tmp)--"
 
-    def __init__(self, text):
+    def __init__(self, text: str) -> None:
         self.text = text
 
-    def replace(self):
+    def replace(self) -> str:
         return self.sub_punctuation_between_quotes_and_parens(self.text)
 
-    def sub_punctuation_between_quotes_and_parens(self, txt):
+    def sub_punctuation_between_quotes_and_parens(self, txt: str) -> str:
         txt = self.sub_punctuation_between_single_quotes(txt)
         txt = self.sub_punctuation_between_single_quote_slanted(txt)
         txt = self.sub_punctuation_between_double_quotes(txt)
@@ -61,34 +69,34 @@ class BetweenPunctuation(object):
         txt = self.sub_punctuation_between_quotes_slanted(txt)
         return txt
 
-    def sub_punctuation_between_parens(self, txt):
+    def sub_punctuation_between_parens(self, txt: str) -> str:
         return re.sub(self.BETWEEN_PARENS_REGEX_2, replace_punctuation, txt)
 
-    def sub_punctuation_between_square_brackets(self, txt):
+    def sub_punctuation_between_square_brackets(self, txt: str) -> str:
         return re.sub(self.BETWEEN_SQUARE_BRACKETS_REGEX_2, replace_punctuation,
                       txt)
 
-    def sub_punctuation_between_single_quotes(self, txt):
+    def sub_punctuation_between_single_quotes(self, txt: str) -> str:
         if re.search(self.WORD_WITH_LEADING_APOSTROPHE, txt) and \
                 (not re.search(r"'\s", txt)):
             return txt
         return re.sub(self.BETWEEN_SINGLE_QUOTES_REGEX,
                       partial(replace_punctuation, match_type='single'), txt)
 
-    def sub_punctuation_between_single_quote_slanted(self, txt):
+    def sub_punctuation_between_single_quote_slanted(self, txt: str) -> str:
         return re.sub(self.BETWEEN_SINGLE_QUOTE_SLANTED_REGEX,
                       replace_punctuation, txt)
 
-    def sub_punctuation_between_double_quotes(self, txt):
+    def sub_punctuation_between_double_quotes(self, txt: str) -> str:
         return re.sub(self.BETWEEN_DOUBLE_QUOTES_REGEX_2, replace_punctuation,
                       txt)
 
-    def sub_punctuation_between_quotes_arrow(self, txt):
+    def sub_punctuation_between_quotes_arrow(self, txt: str) -> str:
         return re.sub(self.BETWEEN_QUOTE_ARROW_REGEX_2, replace_punctuation, txt)
 
-    def sub_punctuation_between_em_dashes(self, txt):
+    def sub_punctuation_between_em_dashes(self, txt: str) -> str:
         return re.sub(self.BETWEEN_EM_DASHES_REGEX_2, replace_punctuation, txt)
 
-    def sub_punctuation_between_quotes_slanted(self, txt):
+    def sub_punctuation_between_quotes_slanted(self, txt: str) -> str:
         return re.sub(self.BETWEEN_QUOTE_SLANTED_REGEX_2, replace_punctuation,
                       txt)

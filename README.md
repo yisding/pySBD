@@ -26,6 +26,8 @@ https://arxiv.org/abs/2010.09657</br>
 
 ## Install
 
+**Python 3.11+ required.**
+
 **Python**
 
     pip install pysbd
