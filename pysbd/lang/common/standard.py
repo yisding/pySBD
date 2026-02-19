@@ -57,30 +57,6 @@ class Standard:
         Uses str.replace() via SUBS_TABLE for performance since all
         substitutions are literal strings (no regex needed).
         """
-        Period = Rule(r'∯', '.')
-        ArabicComma = Rule(r'♬', '،')
-        SemiColon = Rule(r'♭', ':')
-        FullWidthPeriod = Rule(r'&ᓰ&', '。')
-        SpecialPeriod = Rule(r'&ᓱ&', '．')
-        FullWidthExclamation = Rule(r'&ᓳ&', '！')
-        ExclamationPoint = Rule(r'&ᓴ&', '!')
-        QuestionMark = Rule(r'&ᓷ&', '?')
-        FullWidthQuestionMark = Rule(r'&ᓸ&', '？')
-        MixedDoubleQE = Rule(r'☉', '?!')
-        MixedDoubleQQ = Rule(r'☇', '??')
-        MixedDoubleEQ = Rule(r'☈', '!?')
-        MixedDoubleEE = Rule(r'☄', '!!')
-        LeftParens = Rule(r'&✂&', '(')
-        RightParens = Rule(r'&⌬&', ')')
-        TemporaryEndingPunctutation = Rule(r'ȸ', '')
-        Newline = Rule(r'ȹ', "\n")
-        All = [Period, ArabicComma, SemiColon, FullWidthPeriod, SpecialPeriod,
-               FullWidthExclamation, ExclamationPoint, QuestionMark,
-               FullWidthQuestionMark, MixedDoubleQE, MixedDoubleQQ, MixedDoubleEQ,
-               MixedDoubleEE, LeftParens, RightParens, TemporaryEndingPunctutation,
-               Newline]
-
-        # Literal (pattern, replacement) pairs for fast str.replace()
         SUBS_TABLE = [
             ('∯', '.'),
             ('♬', '،'),

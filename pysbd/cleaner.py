@@ -89,7 +89,7 @@ class Cleaner:
 
     def clean_quotations(self):
         # method added explicitly
-        # pragmatic-segmenter applies thhis method
+        # pragmatic-segmenter applies this method
         # at different location
         self.text = re.sub('`', "'", self.text)
         self.text = apply_rules(

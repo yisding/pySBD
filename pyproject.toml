@@ -50,7 +50,7 @@ benchmark = [
 ]
 
 [project.entry-points."spacy_factories"]
-pysbd = "pysbd.utils:PySBDFactory"
+pysbd = "pysbd.spacy_component:PySBDFactory"
 
 [tool.setuptools]
 include-package-data = true

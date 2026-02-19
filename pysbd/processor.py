@@ -12,7 +12,6 @@ from pysbd.abbreviation_replacer import AbbreviationReplacer
 
 # Pre-compiled patterns used on the hot path
 _ALPHA_ONLY_RE = re.compile(r'\A[a-zA-Z]*\Z')
-_UNDERSCORE_RE = re.compile(r'_{3,}')
 _TRAILING_EXCL_RE = re.compile(r'&ᓴ&$')
 _PAREN_SPACE_BEFORE_RE = re.compile(r'\s(?=\()')
 _PAREN_SPACE_AFTER_RE = re.compile(r'(?<=\))\s')
@@ -123,10 +122,6 @@ class Processor:
          # https://github.com/diasks2/pragmatic_segmenter/commit/d9ec1a352aff92b91e2e572c30bb9561eb42c703
         self.text = re.sub(self.lang.NUMBERED_REFERENCE_REGEX,
                       r"∯\2\r\7", self.text)
-
-    def consecutive_underscore(self, txt: str) -> bool:
-        txt = _UNDERSCORE_RE.sub('', txt)
-        return len(txt) == 0
 
     def check_for_punctuation(self, txt: str) -> List[str]:
         if any(p in txt for p in self.lang.Punctuations):

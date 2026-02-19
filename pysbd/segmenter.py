@@ -14,8 +14,8 @@ class Segmenter:
 
     def __init__(self, language: str = "en", clean: bool = False,
                  doc_type: str | None = None, char_span: bool = False) -> None:
-        """Segments a text into an list of sentences
-        with or withour character offsets from original text
+        """Segments a text into a list of sentences
+        with or without character offsets from original text
 
         Parameters
         ----------
@@ -61,33 +61,32 @@ class Segmenter:
             return Processor(text, self.language_module,
                              char_span=self.char_span)
 
-    def sentences_with_char_spans(self, sentences: List[str],
-                                  original_text: str) -> List[TextSpan]:
-        # since SENTENCE_BOUNDARY_REGEX doesnt account
-        # for trailing whitespaces \s* & is used as suffix
-        # to keep non-destructive text after segments joins
-        sent_spans: List[TextSpan] = []
-        prior_end_char_idx = 0
+    def _match_spans(self, sentences: List[str],
+                     original_text: str):
+        """Match processed sentences back to spans in the original text.
+
+        Yields (text_slice, start, end) tuples for each sentence.
+        Accounts for trailing whitespace that SENTENCE_BOUNDARY_REGEX
+        does not capture, keeping the segmentation non-destructive.
+        """
+        prior_end = 0
         for sent in sentences:
             if not sent:
                 continue
-            start_idx = original_text.find(sent, prior_end_char_idx)
+            start_idx = original_text.find(sent, prior_end)
             if start_idx == -1:
                 for match in re.finditer(rf'{re.escape(sent)}\s*', original_text):
-                    match_str = match.group()
-                    match_start_idx, match_end_idx = match.span()
-                    if match_end_idx > prior_end_char_idx:
-                        sent_spans.append(
-                            TextSpan(match_str, match_start_idx, match_end_idx))
-                        prior_end_char_idx = match_end_idx
+                    match_start, match_end = match.span()
+                    if match_end > prior_end:
+                        yield match.group(), match_start, match_end
+                        prior_end = match_end
                         break
                 continue
             end_idx = start_idx + len(sent)
             while end_idx < len(original_text) and original_text[end_idx].isspace():
                 end_idx += 1
-            sent_spans.append(TextSpan(original_text[start_idx:end_idx], start_idx, end_idx))
-            prior_end_char_idx = end_idx
-        return sent_spans
+            yield original_text[start_idx:end_idx], start_idx, end_idx
+            prior_end = end_idx
 
     def segment(self, text: str | None) -> List[str] | List[TextSpan]:
         if not text:
@@ -100,36 +99,13 @@ class Segmenter:
         postprocessed_sents = self.processor(text).process()
 
         if self.char_span:
-            return self.sentences_with_char_spans(postprocessed_sents, original_text)
+            return [TextSpan(s, start, end)
+                    for s, start, end in self._match_spans(postprocessed_sents, original_text)]
         if self.clean:
             # clean and destructed sentences
             return postprocessed_sents
         # nondestructive: return original text spans preserving whitespace
-        return self.sentences_from_original(postprocessed_sents, original_text)
-
-    def sentences_from_original(self, sentences: List[str],
-                                original_text: str) -> List[str]:
-        """Map processed sentences back to original text spans (no TextSpan overhead)."""
-        result: List[str] = []
-        prior_end = 0
-        for sent in sentences:
-            if not sent:
-                continue
-            start_idx = original_text.find(sent, prior_end)
-            if start_idx == -1:
-                for match in re.finditer(rf'{re.escape(sent)}\s*', original_text):
-                    match_start, match_end = match.span()
-                    if match_end > prior_end:
-                        result.append(match.group())
-                        prior_end = match_end
-                        break
-                continue
-            end_idx = start_idx + len(sent)
-            while end_idx < len(original_text) and original_text[end_idx].isspace():
-                end_idx += 1
-            result.append(original_text[start_idx:end_idx])
-            prior_end = end_idx
-        return result
+        return [s for s, _, _ in self._match_spans(postprocessed_sents, original_text)]
 
     def segment_spans(self, text: str | None) -> List[TextSpan]:
         """Return sentence spans regardless of the instance's char_span flag."""

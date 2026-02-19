@@ -34,7 +34,7 @@ https://arxiv.org/abs/2010.09657</br>
 
 ## Usage
 
--   Currently pySBD supports 22 languages.
+-   Currently pySBD supports 23 languages.
 
 ```python
 import pysbd

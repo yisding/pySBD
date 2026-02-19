@@ -5,8 +5,6 @@ from __future__ import annotations
 import re
 from typing import Pattern
 
-import pysbd
-
 class Rule:
 
     def __init__(self, pattern: str, replacement: str, flags: int = 0) -> None:
@@ -25,26 +23,6 @@ def apply_rules(text: str, *rules: Rule) -> str:
     for rule in rules:
         text = rule.regex.sub(rule.replacement, text)
     return text
-
-
-class Text(str):
-    """Extending str functionality to apply regex rules
-
-    https://stackoverflow.com/questions/4698493/can-i-add-custom-methods-attributes-to-built-in-python-types
-
-    Parameters
-    ----------
-    str : str
-        string content
-
-    Returns
-    -------
-    str
-        input as it is if rule pattern doesnt match
-        else replacing found pattern with replacement chars
-    """
-    def apply(self, *rules: Rule) -> str:
-        return apply_rules(str(self), *rules)
 
 
 class TextSpan:
@@ -74,21 +52,3 @@ class TextSpan:
         if isinstance(other, self.__class__):
             return self.sent == other.sent and self.start == other.start and self.end == other.end
         return False
-
-
-class PySBDFactory:
-    """pysbd as a spacy component through entrypoints"""
-
-    def __init__(self, nlp, name: str = "pysbd", language: str = 'en') -> None:
-        self.nlp = nlp
-        self.name = name
-        self.seg = pysbd.Segmenter(language=language, clean=False,
-                                   char_span=True)
-
-    def __call__(self, doc):
-        sents_char_spans = self.seg.segment(doc.text_with_ws)
-        start_token_ids = [sent.start for sent in sents_char_spans]
-        for token in doc:
-            token.is_sent_start = (True if token.idx
-                                   in start_token_ids else False)
-        return doc

@@ -17,7 +17,6 @@ class ListItemReplacer:
     ALPHABETICAL_LIST_WITH_PERIODS = r'(?<=^)[a-z](?=\.)|(?<=\A)[a-z](?=\.)|(?<=\s)[a-z](?=\.)'
 
     # Rubular: http://rubular.com/r/Gu5rQapywf
-    # TODO: Make sure below regex call is case-insensitive
     ALPHABETICAL_LIST_WITH_PARENS = r'(?<=\()[a-z]+(?=\))|(?<=^)[a-z]+(?=\))|(?<=\A)[a-z]+(?=\))|(?<=\s)[a-z]+(?=\))'
 
     # (pattern, replacement)
@@ -45,11 +44,9 @@ class ListItemReplacer:
     NUMBERED_LIST_PARENS_REGEX = r'\d{1,2}(?=\)\s)'
 
     # Rubular: http://rubular.com/r/NsNFSqrNvJ
-    # TODO: Make sure below regex call is case-insensitive
     EXTRACT_ALPHABETICAL_LIST_LETTERS_REGEX = r'\([a-z]+(?=\))|(?<=^)[a-z]+(?=\))|(?<=\A)[a-z]+(?=\))|(?<=\s)[a-z]+(?=\))'
 
     # Rubular: http://rubular.com/r/wMpnVedEIb
-    # TODO: Make sure below regex call is case-insensitive
     ALPHABETICAL_LIST_LETTERS_AND_PERIODS_REGEX = r'(?<=^)[a-z]\.|(?<=\A)[a-z]\.|(?<=\s)[a-z]\.'
 
     # Rubular: http://rubular.com/r/GcnmQt4a3I
@@ -235,7 +232,8 @@ class ListItemReplacer:
         return result
 
     def iterate_alphabet_array(self, regex, parens=False, roman_numeral=False):
-        list_array = re.findall(regex, self.text)
+        list_array = re.findall(regex, self.text, re.IGNORECASE)
+        list_array = [i.lower() for i in list_array]
         alphabet = self.ROMAN_NUMERALS if roman_numeral else self.LATIN_NUMERALS
         alphabet_index = {value: index for index, value in enumerate(alphabet)}
         list_array = [i for i in list_array if i in alphabet]

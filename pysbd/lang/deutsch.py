@@ -83,9 +83,6 @@ class Deutsch(Common, Standard):
             # Rubular: http://rubular.com/r/OdcXBsub0w
             BETWEEN_UNCONVENTIONAL_DOUBLE_QUOTE_DE_REGEX = r',,(?=(?P<tmp>[^“\\]+|\\{2}|\\.)*)(?P=tmp)“'
 
-            # Rubular: http://rubular.com/r/2UskIupGgP
-            # SPLIT_DOUBLE_QUOTES_DE_REGEX = r'\A„(?=(?P<tmp>[^“\\]+|\\{2}|\\.)*)(?P=tmp)“'
-
             # Rubular: http://rubular.com/r/TkZomF9tTM
             BETWEEN_DOUBLE_QUOTES_DE_REGEX = r'„(?=(?P<tmp>[^“\\]+|\\{2}|\\.)*)(?P=tmp)“'
 

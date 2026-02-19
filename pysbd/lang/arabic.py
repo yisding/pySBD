@@ -26,7 +26,7 @@ class Arabic(Common, Standard):
             super().__init__(text, lang)
 
         def scan_for_replacements(self, txt, am, index, character_array, stripped=None, escaped=None):
-            txt = re.sub('(?<={0})\.'.format(am), '∯', txt)
+            txt = re.sub(r'(?<={0})\.'.format(am), '∯', txt)
             return txt
 
     class Abbreviation(Standard.Abbreviation):
