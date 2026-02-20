@@ -1,10 +1,10 @@
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["uv_build>=0.10.4,<0.11.0"]
+build-backend = "uv_build"
 
 [project]
 name = "pysbd"
-dynamic = ["version"]
+version = "0.3.4"
 description = "pysbd (Python Sentence Boundary Disambiguation) is a rule-based sentence boundary detection that works out-of-the-box across many languages."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -54,11 +54,8 @@ dev = [
   "pytest-cov>=5.0",
 ]
 
-[tool.hatch.version]
-path = "pysbd/about.py"
-
-[tool.hatch.build.targets.wheel]
-packages = ["pysbd"]
+[tool.uv.build-backend]
+module-root = ""
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

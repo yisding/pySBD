@@ -1102,6 +1102,7 @@ wheels = [
 
 [[package]]
 name = "pysbd"
+version = "0.3.4"
 source = { editable = "." }
 
 [package.optional-dependencies]
