@@ -305,7 +305,7 @@ class Slovak(Common, Standard):
 
         def replace_period_in_roman_numerals(self):
             # Rubular: https://rubular.com/r/XlzTIi7aBRThSl
-            self.text = re.sub(r"((\s+[VXI]+)|(^[VXI]+))(\.)(?=\s+)", r"\1∯", self.text, re.IGNORECASE)
+            self.text = re.sub(r"((\s+[VXI]+)|(^[VXI]+))(\.)(?=\s+)", r"\1∯", self.text, flags=re.IGNORECASE)
 
         def replace_period_in_slovak_dates(self):
             MONTHS = [
