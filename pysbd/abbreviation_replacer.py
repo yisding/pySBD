@@ -115,6 +115,10 @@ class _AbbreviationData:
 
 class AbbreviationReplacer:
     _data_cache: dict[int, _AbbreviationData] = {}
+    SENTENCE_STARTERS = []
+    SENTENCE_BOUNDARY_ABBREVIATIONS = [
+        'U∯S', 'U.S', 'U∯K', 'E∯U', 'E.U', 'U∯S∯A', 'U.S.A', 'I', 'i.v', 'I.V'
+    ]
 
     def __init__(self, text: str, lang) -> None:
         self.text = text
@@ -152,7 +156,10 @@ class AbbreviationReplacer:
 
     def replace_abbreviation_as_sentence_boundary(self) -> str:
         sent_starters = "|".join((r"(?=\s{}\s)".format(word) for word in self.SENTENCE_STARTERS))
-        regex = r"(U∯S|U\.S|U∯K|E∯U|E\.U|U∯S∯A|U\.S\.A|I|i.v|I.V)∯({})".format(sent_starters)
+        if not sent_starters:
+            return self.text
+        boundary_abbr = "|".join(re.escape(abbr) for abbr in self.SENTENCE_BOUNDARY_ABBREVIATIONS)
+        regex = r"({})∯({})".format(boundary_abbr, sent_starters)
         self.text = re.sub(regex, '\\1.', self.text)
         return self.text
 
