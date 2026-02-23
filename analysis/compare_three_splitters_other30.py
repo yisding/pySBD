@@ -9,8 +9,9 @@ from dataclasses import asdict, dataclass
 
 import nltk
 import nltk.data
-import pysbd
 import requests
+
+import pysbd
 import sentencesplit
 
 ARTICLES = [
@@ -183,14 +184,18 @@ def main() -> None:
     lines = [
         "# Other 30 Wikipedia articles splitter comparison",
         "",
-        f"Summary: {summary['articles']} articles, up to {summary['max_paragraphs_per_article']} paragraphs/article, {summary['paragraphs']} paragraphs total.",
+        f"Summary: {summary['articles']} articles, up to "
+        f"{summary['max_paragraphs_per_article']} paragraphs/article, "
+        f"{summary['paragraphs']} paragraphs total.",
         "",
         "| ID | Article | sentencesplit | pySBD | punkt | Notes |",
         "|---:|---|---|---|---|---|",
     ]
     for r in records:
         lines.append(
-            f"| {r.id} | {r.article} | {r.verdict_sentencesplit} | {r.verdict_pysbd} | {r.verdict_punkt} | {r.notes.split('. ')[0]} |"
+            f"| {r.id} | {r.article} | {r.verdict_sentencesplit} "
+            f"| {r.verdict_pysbd} | {r.verdict_punkt} "
+            f"| {r.notes.split('. ')[0]} |"
         )
     with open(OUTPUT_MD, "w", encoding="utf-8") as f:
         f.write("\n".join(lines) + "\n")

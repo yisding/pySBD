@@ -578,11 +578,11 @@ CHALLENGING_EN_TEST_CASES = [
         ),
         [
             '"Peak XV"',
-            '(temporary, assigned by British Imperial Survey)',
+            "(temporary, assigned by British Imperial Survey)",
             '"Deodungha"',
-            '(Old Darjeeling)',
+            "(Old Darjeeling)",
             '"Gauri Shankar", "Gaurishankar", or "Gaurisankar" (misattribution; used occasionally until about 1900.',
-            'In modern times the name is used for a different peak about 30 miles (48 kilometres) away.)',
+            "In modern times the name is used for a different peak about 30 miles (48 kilometres) away.)",
         ],
     ),
 ]
