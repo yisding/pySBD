@@ -34,7 +34,7 @@ class Chinese(Common, Standard):
             self.text = re.sub(BETWEEN_L_BRACKET_REGEX, replace_punctuation, self.text)
 
         def sub_punctuation_between_double_quotes_zh(self):
-            BETWEEN_DOUBLE_QUOTES_ZH_REGEX = r'“(?=(?P<tmp>[^”\\]+|\\{2}|\\.)*)(?P=tmp)”'
+            BETWEEN_DOUBLE_QUOTES_ZH_REGEX = r"“(?=(?P<tmp>[^”\\]+|\\{2}|\\.)*)(?P=tmp)”"
             self.text = re.sub(BETWEEN_DOUBLE_QUOTES_ZH_REGEX, replace_punctuation, self.text)
 
         def sub_punctuation_between_single_quotes_zh(self):
